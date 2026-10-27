@@ -1,0 +1,24 @@
+<resources>
+    <string name="app_name">DENA-PAONA</string>
+    <string name="app_version">V0.0.1</string>
+    <string name="app_tagline">OFFLINE PERSONAL DEBT &amp; RECEIVABLES LEDGER</string>
+
+    <!-- Navigation -->
+    <string name="nav_dashboard">DASHBOARD</string>
+    <string name="nav_receivables">PAONA (IN)</string>
+    <string name="nav_payables">DENA (OUT)</string>
+    <string name="nav_search">SEARCH</string>
+    <string name="nav_settings">SETTINGS</string>
+
+    <!-- Dashboard & Metrics -->
+    <string name="label_net_position">NET POSITION</string>
+    <string name="label_total_receivables">RECEIVABLES (PAONA)</string>
+    <string name="label_total_payables">PAYABLES (DENA)</string>
+    <string name="label_overdue_alerts">OVERDUE &amp; DUE TODAY</string>
+    <string name="label_add_entry">NEW LEDGER ENTRY</string>
+    <string name="label_edit_entry">EDIT LEDGER ENTRY</string>
+    <string name="label_record_repayment">LOG REPAYMENT</string>
+    <string name="label_repayment_history">REPAYMENT HISTORY</string>
+    <string name="label_backup_restore">BACKUP &amp; RESTORE</string>
+    <string name="label_trial_banner">21-DAY PREMIUM TRIAL</string>
+</resources>

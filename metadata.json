@@ -1,0 +1,6 @@
+{
+  "name": "DENA-PAONA",
+  "description": "Offline-first personal debt and receivables ledger with exact monetary arithmetic, repayment history, 21-day trial architecture, and JSON backup/restore.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
