@@ -1,114 +1,124 @@
-# DENA-PAONA (`v0.0.1`)
+# DENA-PAONA
 
-**OFFLINE-FIRST PERSONAL DEBT & RECEIVABLES LEDGER FOR ANDROID**
+**Offline-first personal ledger for money owed to you and money you owe.**
 
-- **Repository:** [https://github.com/mrrahulbrohma/dena-paona](https://github.com/mrrahulbrohma/dena-paona)
-- **Version:** `0.0.1` (`versionCode = 1`)
-- **Stack:** Kotlin, Jetpack Compose, Material 3, Room SQLite (KSP), Coroutines & Flow, MVVM
-- **License:** [Apache License 2.0](./LICENSE)
+[![Android CI](https://github.com/mrrahulbrohma/dena-paona/actions/workflows/android-ci.yml/badge.svg)](https://github.com/mrrahulbrohma/dena-paona/actions/workflows/android-ci.yml)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
 
----
+- **Status:** Development / testing. Not represented as Google Play approved.
+- **Current app version:** `0.0.1` (version code `1`)
+- **Platform:** Native Android, Kotlin, Jetpack Compose, Material 3
+- **Local storage:** Room / SQLite, with preferences stored locally
+- **License:** Apache-2.0; see [LICENSE](LICENSE)
 
-## 1. Overview & Key Capabilities
+DENA-PAONA (DENA = payable, PAONA = receivable) is designed to help an individual keep separate, persistent records of money they owe and money other people owe them. Core ledger actions are intended to work offline. This project is not accounting, lending, or financial advice.
 
-**DENA-PAONA** is a native Android personal debt (`DENA` / Payables) and receivables (`PAONA` / Receivables) ledger designed for zero-latency offline reliability, exact monetary arithmetic, and full user data sovereignty.
+## Features in the codebase
 
-### Core Features
-1. **Offline-First SQLite Ledger (Room):** Complete local persistence with reactive `Flow` queries and zero external network dependencies required for daily ledger operations.
-2. **Exact Monetary Arithmetic (`MoneyMath`):** All monetary values are stored in integer minor units (`1 BDT = 100 paisa`) and parsed/calculated with `BigDecimal` (`RoundingMode.HALF_UP`) to eliminate floating-point drift across partial repayments and net position totals.
-3. **Immutable Repayment History (`RepaymentEntity`):** Every partial or full repayment is recorded atomically inside a Room `@Transaction`, updating the parent entry's repaid balance while preserving the full chronological audit trail.
-4. **Idempotent Initial Seed & Safe Migration (`InitialSeedData`):** Seeds the six canonical initial records **strictly once** (and safely migrates legacy v1 demo installations without deleting user-created records or inventing missing dates):
-   - **Receivable (`PAONA`):**
-     - `1. TAMIR` — `BDT 200` • Transaction date: Unknown • Due date: Unknown • Note: *Money lent in early 2026.*
-     - **Total Initial Receivables:** **`BDT 200`**
-   - **Payables (`DENA`):**
-     - `2. SAKIB'S SHOP` — `BDT 30` • Transaction date: Unknown • Due date: Unknown • Note: *Credit before Puja.*
-     - `3. SAKIB'S SHOP` — `BDT 30` • Transaction date: Unknown • Due date: Unknown • Note: *Separate credit entry; exact date unknown.*
-     - `4. SAKIB'S SHOP` — `BDT 20` • Transaction date: `2026-10-27` (`Asia/Dhaka`) • Due date: Unknown
-     - `5. JONY BHAI'S SHOP` — `BDT 20` • Transaction date: Unknown • Due date: Unknown • Note: *Credit during Durga Puja.*
-     - `6. KALAM MAMA'S SHOP` — `BDT 10` • Transaction date: Unknown • Due date: Unknown • Note: *Credit before Puja.*
-     - **Total Initial Payables:** **`BDT 110`**
-   - **Initial Net Position (`PAONA - DENA`):** **`BDT +90`**
-5. **Minimal Accessible English Uppercase UI:** High-contrast Obsidian Dark and Paper Light themes, bundled local **Inter** typography (`res/font/inter.ttf`), uppercase labels with generous letter-spacing, and `48dp+` minimum touch targets.
-6. **21-Day Premium Trial & Clear Entitlement Boundaries (`EntitlementEngine`):**
-   - **Permanently Free Core Offline Ledger:** Adding/editing entries, logging repayments, viewing repayment history, searching/filtering, and JSON backup/restore **never expire** and are never locked behind a paywall.
-   - **21-Day Trial / Pro Features:** Overdue aging bucket analytics (`1-7D`, `8-30D`, `31D+`) and one-tap formatted statement copy.
-7. **Modular Payment & Referral Architecture:**
-   - `PaymentGatewayModule` and `OfflineModularPaymentGateway` define a clean verification boundary that refuses to fake payment verification offline.
-   - `ReferralModule` generates deterministic local invite codes and logs outbound shares locally without faking server-side referral rewards.
+- Local Room database and reactive state using Kotlin Coroutines / Flow.
+- Separate receivable and payable entries.
+- Exact monetary values stored in integer minor units (paisa), with decimal-safe parsing and formatting.
+- Repayment entries and remaining-balance calculations.
+- Seed-once initial sample ledger records.
+- Search, summaries, preferences, and JSON backup / restore flows.
+- 21-day premium-trial and feature-entitlement scaffolding.
+- Payment and referral abstractions that are designed not to claim verification or rewards when no trusted service is configured.
+- Light and dark theme support and locally bundled Inter font.
 
----
+Implementation status varies by feature. A source file, UI, or interface does not by itself prove that an end-to-end service is configured. In particular, Google Play Billing, external payment verification, server-authoritative referrals, and cloud features must be independently configured and tested before production use.
 
-## 2. Project Structure
+## Initial ledger fixture
+
+The source-defined first-run dataset contains six editable records. Dates that were not known are left unknown; they are not inferred.
+
+| Direction | Counterparty | Amount |
+|---|---|---:|
+| Receivable | TAMIR | BDT 200 |
+| Payable | SAKIB'S SHOP | BDT 30 |
+| Payable | SAKIB'S SHOP | BDT 30 |
+| Payable | SAKIB'S SHOP | BDT 20 |
+| Payable | JONY BHAI'S SHOP | BDT 20 |
+| Payable | KALAM MAMA'S SHOP | BDT 10 |
+
+Expected first-run figures: **receivables BDT 200**, **payables BDT 110**, **net position BDT +90**. Treat this as a fixture derived from personal notes, not as a verified financial statement.
+
+## Repository layout
 
 ```text
 app/src/main/java/com/example/
-├── MainActivity.kt
-├── data/
-│   ├── backup/BackupRestoreManager.kt      # Deterministic JSON export & restore
-│   ├── local/
-│   │   ├── DenaPaonaDatabase.kt            # Room database configuration
-│   │   ├── InitialSeedData.kt              # 6 canonical seed records (200 / 110 / +90)
-│   │   ├── LedgerDao.kt                    # Atomic seed-once, repayment & restore transactions
-│   │   └── LedgerEntities.kt               # LedgerEntryEntity, RepaymentEntity, SystemMetaEntity
-│   ├── preferences/AppPreferencesRepository.kt
-│   └── repository/LedgerRepository.kt      # MVVM repository & exact summary metrics
-├── domain/
-│   ├── entitlement/EntitlementEngine.kt    # 21-day trial, modular payment & referral contracts
-│   └── model/
-│       ├── DueDateCalculator.kt            # Deterministic UTC day-normalized overdue evaluation
-│       └── MoneyMath.kt                    # Exact minor-unit & BigDecimal arithmetic
-└── ui/
-    ├── DenaPaonaApp.kt                     # Root scaffold, navigation & dialogs
-    ├── components/LedgerComponents.kt      # Hero card, entry cards, forms & history modal
-    ├── screens/
-    │   ├── MainLedgerScreens.kt            # Dashboard, Receivables, Payables & Search screens
-    │   └── SettingsAndBackupScreen.kt      # Theme, JSON backup/restore, trial & sandbox controls
-    ├── theme/                              # Color.kt, Type.kt (Inter), Theme.kt
-    └── viewmodel/LedgerViewModel.kt        # Reactive StateFlow MVVM state holder
+├── data/        Room database, repositories, preferences, backup/restore
+├── domain/      Money math, due dates, entitlements and integration boundaries
+└── ui/          Compose screens, components, theme and ViewModel
+app/src/test/    Unit and Robolectric tests
+.github/         CI workflow, issue templates and pull-request template
+docs/            Release checklist and privacy-policy draft
 ```
 
----
+## Development setup
 
-## 3. Building & Testing Instructions
+### Requirements
 
-### Run Unit & Robolectric Tests
-```bash
+- Android Studio with a compatible Android SDK.
+- JDK 17 or another JDK version supported by the pinned Android Gradle Plugin / Gradle combination.
+- Gradle **9.3.1** for the current CI build configuration.
+- Android SDK Platform **36.1** as requested by the current app module.
+
+Set the Android SDK path through Android Studio's SDK Manager. Do not commit `local.properties`.
+
+### Build and test
+
+The repository currently contains `gradle/wrapper/gradle-wrapper.properties`, but the generated wrapper scripts and `gradle-wrapper.jar` are not checked in on this branch. Until the wrapper is restored, install/use the pinned Gradle distribution and run from the repository root:
+
+**Windows PowerShell**
+```powershell
 gradle :app:testDebugUnitTest
-```
-
-### Build Debug APK
-```bash
 gradle :app:assembleDebug
 ```
-The compiled debug APK will be generated at:
-`app/build/outputs/apk/debug/app-debug.apk`
 
-### Build Release Android App Bundle (AAB)
-Configure your signing keystore credentials via environment variables (`KEYSTORE_PATH`, `STORE_PASSWORD`, `KEY_PASSWORD`) and run:
+**macOS / Linux**
 ```bash
-gradle :app:bundleRelease
+gradle :app:testDebugUnitTest
+gradle :app:assembleDebug
 ```
-The signed release AAB will be generated at:
-`app/build/outputs/bundle/release/app-release.aab`
 
----
+The local Android SDK must be installed and discoverable. If the build asks for a package license or SDK package, install/accept it through Android Studio's SDK Manager. The CI workflow sets up the required JDK, Android SDK packages, and Gradle version on a clean GitHub runner.
 
-## 4. Exporting & Pushing to GitHub
+When the wrapper scripts and matching JAR have been restored to the repository, prefer the wrapper for reproducible local builds:
 
-To push this project from AI Studio to `https://github.com/mrrahulbrohma/dena-paona`:
-1. Use the **Push to GitHub** or **Export ZIP** option in the AI Studio settings menu, or run from your local clone:
-   ```bash
-   git init
-   git remote add origin https://github.com/mrrahulbrohma/dena-paona.git
-   git checkout -b main
-   git add .
-   git commit -m "feat: initialize DENA-PAONA v0.0.1 offline ledger"
-   git push -u origin main
-   ```
+- Windows: `.gradlew.bat :app:assembleDebug`
+- macOS / Linux: `./gradlew :app:assembleDebug`
 
----
+### Build outputs
 
-## 5. License
+- Debug APK: `app/build/outputs/apk/debug/app-debug.apk`
+- Release Android App Bundle (AAB): `app/build/outputs/bundle/release/app-release.aab` (only after release signing is securely configured)
 
-Licensed under the **Apache License, Version 2.0**. See [LICENSE](./LICENSE) for full details.
+A successful debug build is not a signed Play Store release and does not mean Play review or Play Protect approval. The debug keystore is for development only. Never commit release signing keys or passwords.
+
+## Security and privacy
+
+Financial entries and exported backups may contain sensitive personal information. Use synthetic data in bug reports and screenshots. Do not upload real ledgers, backups, signing keys, `.env`, or device-specific configuration to issues or pull requests.
+
+- Read [SECURITY.md](SECURITY.md) before reporting a vulnerability.
+- Read the [privacy policy draft](docs/PRIVACY_POLICY_DRAFT.md); it is not yet a published legal policy. Verify actual manifest, dependency, and runtime behavior before publishing.
+- Review [the release checklist](docs/RELEASE_CHECKLIST.md) before distributing an artifact.
+- See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution and local build guidance.
+
+## Open-source contributions
+
+Issues and pull requests are welcome. Use the supplied templates, explain how you reproduced an issue, and include exact commands/results for tests you ran. Do not claim tests passed unless they were actually executed.
+
+## Roadmap / release blockers
+
+- Restore and commit Gradle Wrapper scripts plus the matching wrapper JAR, then validate a clean clone.
+- Run CI and resolve any failing build or tests.
+- Review package/application ID before the first public release.
+- Verify the release signing flow and produce a signed AAB.
+- Complete privacy, data-safety, testing, and store-listing requirements against the actual release artifact.
+- Configure and validate any billing, payment, referral, or cloud backend before enabling it in production.
+
+See [docs/RELEASE_CHECKLIST.md](docs/RELEASE_CHECKLIST.md) for the release checklist.
+
+## License
+
+DENA-PAONA is licensed under the Apache License 2.0. See [LICENSE](LICENSE).
