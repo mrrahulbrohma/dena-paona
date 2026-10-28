@@ -1,5 +1,9 @@
 # DENA-PAONA (`v0.0.1`)
 
+[![Android CI](https://github.com/mrrahulbrohma/dena-paona/actions/workflows/android-ci.yml/badge.svg)](https://github.com/mrrahulbrohma/dena-paona/actions/workflows/android-ci.yml)
+
+> **Development status:** This repository is under active development. A successful local debug build is not a production release or a guarantee of Google Play approval. Review the package identity, release signing, privacy disclosures, and app behavior before publishing.
+
 **OFFLINE-FIRST PERSONAL DEBT & RECEIVABLES LEDGER FOR ANDROID**
 
 - **Repository:** [https://github.com/mrrahulbrohma/dena-paona](https://github.com/mrrahulbrohma/dena-paona)
@@ -42,7 +46,7 @@
 ## 2. Project Structure
 
 ```text
-app/src/main/java/com/example/
+app/src/main/java/com/example/ (current source namespace; review before release)
 ├── MainActivity.kt
 ├── data/
 │   ├── backup/BackupRestoreManager.kt      # Deterministic JSON export & restore
@@ -73,6 +77,8 @@ app/src/main/java/com/example/
 ## 3. Building & Testing Instructions
 
 ### Run Unit & Robolectric Tests
+Run these commands from the project root with Gradle 9.3.1 and a compatible JDK installed. The GitHub Actions workflow runs the same checks on pushes and pull requests.
+
 ```bash
 gradle :app:testDebugUnitTest
 ```
@@ -85,6 +91,8 @@ The compiled debug APK will be generated at:
 `app/build/outputs/apk/debug/app-debug.apk`
 
 ### Build Release Android App Bundle (AAB)
+**Do not use the debug APK as a Play Store release.** Before making a release build, confirm the final unique `applicationId` and `namespace` in `app/build.gradle.kts`, create and securely back up your own upload keystore, and verify that release signing is configured correctly. Never commit the keystore or its passwords.
+
 Configure your signing keystore credentials via environment variables (`KEYSTORE_PATH`, `STORE_PASSWORD`, `KEY_PASSWORD`) and run:
 ```bash
 gradle :app:bundleRelease
