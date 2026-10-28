@@ -1,37 +1,60 @@
-name: Android CI (Build & Unit Tests)
+name: Android CI
 
 on:
   push:
-    branches: [ "main", "master" ]
+    branches: [main, master]
   pull_request:
-    branches: [ "main", "master" ]
+    branches: [main, master]
   workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build-and-test:
+    name: Unit tests and debug APK
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
-      - name: Checkout Repository
+      - name: Check out source
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17
+      - name: Set up JDK
         uses: actions/setup-java@v4
         with:
+          distribution: temurin
           java-version: '17'
-          distribution: 'temurin'
 
-      - name: Setup Gradle
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install required Android SDK packages
+        run: sdkmanager "platforms;android-36.1" "build-tools;36.0.0" "platform-tools"
+
+      - name: Set up Gradle 9.3.1
         uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.3.1'
 
-      - name: Run Unit & Robolectric Tests
+      # This repository currently lacks the checked-in Gradle Wrapper JAR/scripts.
+      # Using the pinned Gradle distribution here keeps CI reproducible while the
+      # wrapper artifacts are restored. Local builds should use ./gradlew or gradlew.bat
+      # once those files are committed.
+      - name: Run unit tests
         run: gradle :app:testDebugUnitTest
 
-      - name: Assemble Debug APK
+      - name: Assemble debug APK
         run: gradle :app:assembleDebug
 
-      - name: Upload Debug APK Artifact
+      - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: dena-paona-v0.0.1-debug-apk
+          name: dena-paona-debug-apk
           path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 14
