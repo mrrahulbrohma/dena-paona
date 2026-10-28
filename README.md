@@ -4,7 +4,9 @@
 
 > **Development status:** This repository is under active development. A successful local debug build is not a production release or a guarantee of Google Play approval. Review the package identity, release signing, privacy disclosures, and app behavior before publishing.
 
-**OFFLINE-FIRST PERSONAL DEBT & RECEIVABLES LEDGER FOR ANDROID**
+**ANDROID APK · OFFLINE-FIRST PERSONAL DEBT & RECEIVABLES LEDGER**
+
+> This repository is organized around the installable Android APK. Download the latest build from GitHub Actions artifacts or the Releases page when a release APK is published. The current CI artifact is a debug/testing APK, not a Play Store release.
 
 - **Repository:** [https://github.com/mrrahulbrohma/dena-paona](https://github.com/mrrahulbrohma/dena-paona)
 - **Version:** `0.0.1` (`versionCode = 1`)
@@ -74,7 +76,20 @@ app/src/main/java/com/example/ (current source namespace; review before release)
 
 ---
 
-## 3. Building & Testing Instructions
+## 3. Download or Build the APK
+
+### Download a ready-to-install APK
+
+1. Open the [GitHub Actions runs](https://github.com/mrrahulbrohma/dena-paona/actions/workflows/android-ci.yml).
+2. Select the latest successful **Android CI** run.
+3. In **Artifacts**, download `dena-paona-debug-apk` and extract the ZIP.
+4. Install `app-debug.apk` on your Android device. Android may ask you to allow installation from that source; only install builds you trust.
+
+**Important:** A CI/debug APK is for testing and may show Android/Play Protect warnings because it is not a Play-distributed release. Do not disable Play Protect to install it. If Android blocks it or reports a specific threat, stop and share the exact warning for review.
+
+### Build an APK on your computer
+
+## 4. Build & Test Commands
 
 ### Run Unit & Robolectric Tests
 Run these commands from the project root with Gradle 9.3.1 and a compatible JDK installed. The GitHub Actions workflow runs the same checks on pushes and pull requests.
@@ -102,7 +117,11 @@ The signed release AAB will be generated at:
 
 ---
 
-## 4. Exporting & Pushing to GitHub
+## 5. Publishing a downloadable APK
+
+For a public, stable download link, create a GitHub Release and attach the tested APK file under **Assets**. Do not label a debug APK as a production release. The repository currently has CI artifacts, but a binary APK has not been attached to a GitHub Release by these repository changes.
+
+## 6. Exporting & Pushing to GitHub
 
 To push this project from AI Studio to `https://github.com/mrrahulbrohma/dena-paona`:
 1. Use the **Push to GitHub** or **Export ZIP** option in the AI Studio settings menu, or run from your local clone:
@@ -117,6 +136,6 @@ To push this project from AI Studio to `https://github.com/mrrahulbrohma/dena-pa
 
 ---
 
-## 5. License
+## 7. License
 
 Licensed under the **Apache License, Version 2.0**. See [LICENSE](./LICENSE) for full details.
