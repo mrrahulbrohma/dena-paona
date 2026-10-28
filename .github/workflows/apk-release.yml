@@ -1,0 +1,79 @@
+name: APK Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: "Release tag (for example v0.0.1-test.1)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    name: Build APK and attach it to GitHub Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      ANDROID_HOME: /usr/local/lib/android/sdk
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag_name || github.ref }}
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle 9.3.1
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "9.3.1"
+
+      - name: Locate Android SDK manager
+        shell: bash
+        run: |
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -name sdkmanager -type f | head -n 1)"
+          if [ -z "$SDKMANAGER" ]; then
+            echo "Android SDK manager was not found on this runner."
+            exit 1
+          fi
+          echo "SDKMANAGER=$SDKMANAGER" >> "$GITHUB_ENV"
+
+      - name: Accept Android SDK licenses
+        shell: bash
+        run: yes | "$SDKMANAGER" --licenses
+
+      - name: Install Android SDK packages
+        shell: bash
+        run: "$SDKMANAGER" "platforms;android-36" "build-tools;36.0.0"
+
+      - name: Build debug APK
+        run: gradle --no-daemon :app:assembleDebug
+
+      - name: Rename APK for release
+        shell: bash
+        run: cp app/build/outputs/apk/debug/app-debug.apk "DENA-PAONA-${{ github.event.inputs.tag_name || github.ref_name }}-debug.apk"
+
+      - name: Publish GitHub Release with APK
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.tag_name || github.ref_name }}
+          name: DENA-PAONA ${{ github.event.inputs.tag_name || github.ref_name }}
+          prerelease: true
+          generate_release_notes: true
+          body: |
+            Automated debug APK build for testing.
+
+            **This is a debug/testing APK, not a production Play Store release.**
+            Android or Play Protect may warn about sideloaded test builds. Do not disable Play Protect to install it.
+          files: DENA-PAONA-*-debug.apk
