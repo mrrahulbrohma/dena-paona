@@ -16,3 +16,9 @@
 local.properties
 .env
 debug.keystore
+
+# Local Android signing and IDE state
+my-upload-key.jks
+*.keystore
+*.jks
+.idea/
