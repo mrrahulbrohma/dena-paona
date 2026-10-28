@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   build:
-    name: Build debug APK and run unit tests
+    name: Test and build APK
     runs-on: ubuntu-latest
     timeout-minutes: 40
     env:
@@ -37,20 +37,22 @@ jobs:
         with:
           gradle-version: "9.3.1"
 
-      # GitHub's Ubuntu runner image already includes Android SDK.
-      # Avoid setup-android's sdkmanager bootstrap, which currently fails
-      # while trying to install the obsolete "tools" package.
-      - name: Verify Android SDK
+      - name: Locate Android SDK manager
+        shell: bash
         run: |
-          test -x "$ANDROID_HOME/platform-tools/adb"
           SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -name sdkmanager -type f | head -n 1)"
-test -n "$SDKMANAGER"
-echo "SDKMANAGER=$SDKMANAGER" >> "$GITHUB_ENV"
+          if [ -z "$SDKMANAGER" ]; then
+            echo "Android SDK manager was not found on this runner."
+            exit 1
+          fi
+          echo "SDKMANAGER=$SDKMANAGER" >> "$GITHUB_ENV"
 
       - name: Accept Android SDK licenses
+        shell: bash
         run: yes | "$SDKMANAGER" --licenses
 
-      - name: Install Android platform and build tools
+      - name: Install Android SDK packages
+        shell: bash
         run: "$SDKMANAGER" "platforms;android-36" "build-tools;36.0.0"
 
       - name: Run unit tests
@@ -59,7 +61,7 @@ echo "SDKMANAGER=$SDKMANAGER" >> "$GITHUB_ENV"
       - name: Build debug APK
         run: gradle --no-daemon :app:assembleDebug
 
-      - name: Upload debug APK
+      - name: Upload debug APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: dena-paona-debug-apk
